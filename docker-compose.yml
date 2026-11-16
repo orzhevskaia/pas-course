@@ -1,0 +1,50 @@
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-rossmann_pas}
+      POSTGRES_USER: ${POSTGRES_USER:-pas}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-pas_local_demo}
+    ports:
+      - "127.0.0.1:${POSTGRES_PORT:-55432}:5432"
+    volumes:
+      - pas_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-pas} -d ${POSTGRES_DB:-rossmann_pas}"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+  app:
+    build: .
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-pas}:${POSTGRES_PASSWORD:-pas_local_demo}@db:5432/${POSTGRES_DB:-rossmann_pas}
+      AS_OF: ${AS_OF:-2015-07-31}
+      HORIZON: ${HORIZON:-42}
+      WEATHER_MODE: ${WEATHER_MODE:-auto}
+      MODEL_ITERATIONS: ${MODEL_ITERATIONS:-100}
+    ports:
+      - "127.0.0.1:8501:8501"
+    volumes:
+      - ./data:/app/data
+      - ./artifacts:/app/artifacts
+    depends_on:
+      db:
+        condition: service_healthy
+    command: ["streamlit", "run", "dashboard/app.py", "--server.address=0.0.0.0", "--server.headless=true"]
+  scheduler:
+    build: .
+    profiles: ["scheduled"]
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-pas}:${POSTGRES_PASSWORD:-pas_local_demo}@db:5432/${POSTGRES_DB:-rossmann_pas}
+      AS_OF: ${AS_OF:-2015-07-31}
+      WEATHER_MODE: ${WEATHER_MODE:-auto}
+      INTERVAL_SECONDS: ${INTERVAL_SECONDS:-86400}
+    volumes:
+      - ./data:/app/data
+      - ./artifacts:/app/artifacts
+    depends_on:
+      db:
+        condition: service_healthy
+    command: ["python", "-m", "pas.scheduler"]
+volumes:
+  pas_pgdata:
