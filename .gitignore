@@ -18,11 +18,19 @@ htmlcov/
 .DS_Store
 *.log
 
+# Local editor settings
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
 # Generated data, models and browser captures
 /artifacts/
 /data/weather_cache/
 
 # Personal notes and submission materials
+/private/
 /docs/
 /WORK_PLAN.md
 /requirements-docs.txt
