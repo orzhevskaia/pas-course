@@ -1,0 +1,15 @@
+.git
+venv
+.venv
+__pycache__
+.pytest_cache
+data
+artifacts
+.env
+*.pdf
+docs
+WORK_PLAN.md
+requirements-docs.txt
+scripts/build_materials.py
+scripts/package_submission.py
+scripts/verify_summary.py
